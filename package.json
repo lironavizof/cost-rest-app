@@ -1,0 +1,17 @@
+{
+  "name": "cost-rest-app",
+  "version": "1.0.0",
+  "description": "REST API for managing costs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongoose": "^8.1.0",
+    "pino": "^9.0.0",
+    "pino-http": "^9.0.0",
+    "dotenv": "^16.4.1"
+  }
+}
