@@ -13,11 +13,14 @@ const costSchema = new mongoose.Schema(
         },
         userid: {
             type: Number,
-            required: true
+            required: true,
+            min: 1
         },
         sum: {
             type: Number,
-            required: true
+            required: true,
+            min: [Number.MIN_VALUE, 'sum must be a positive number']
+
         },
         date: {
             type: Date,
