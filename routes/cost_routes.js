@@ -6,10 +6,10 @@ const {userExistsRemote} = require("../services/user_service_client");
 
 const router = express.Router();
 
-/**
- * POST costs/api
- * Add a new cost item
- */
+// add new cost
+// input: req.body { description, category, userid, sum, date? }
+// output: 201 saved cost OR 400/500 error
+// POST costs/api
 router.post('/add', async (req, res) => {
 
     //add-log ("user send add")
@@ -33,7 +33,7 @@ router.post('/add', async (req, res) => {
         //
     }
 });
-
+// checks if the month of the date already ended
 function hasMonthPassed(date) {
     const now = new Date();
 
@@ -48,11 +48,9 @@ function hasMonthPassed(date) {
 }
 
 
-
-/**
- * GET /api/costs
- * Get all cost items
- */
+// get all costs
+// output: array of costs
+// GET /api/costs
 router.get('', async (req, res) => {
     try {
         const costs = await Cost.find();
@@ -92,7 +90,10 @@ router.get('/total/:userid', async (req, res) => {
     }
 });
 
-
+// monthly report
+// query: userid, year, month
+// current/future month -> build from costs
+// past month -> try cached report, else build and save
 // GET /api/report?userid=111&year=2026&month=1
 router.get('/report', async (req, res) => {
     try {
