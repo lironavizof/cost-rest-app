@@ -1,7 +1,7 @@
 // services/user_service_client.js
 // Calls an external Users service to check if a user exists.
 
-const DEFAULT_TIMEOUT_MS = 5000;
+const DEFAULT_TIMEOUT_MS = 10000;
 // Helper function to perform a fetch with a timeout limit
 const fetchWithTimeout = async (url, options = {}, timeoutMs = DEFAULT_TIMEOUT_MS) => {
     const controller = new AbortController();

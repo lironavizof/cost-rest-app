@@ -9,7 +9,7 @@ const router = express.Router();
 // add new cost
 // input: req.body { description, category, userid, sum, date? }
 // output: 201 saved cost OR 400/500 error
-// POST costs/api
+// POST costs/api/add
 router.post('/add', async (req, res) => {
 
     //add-log ("user send add")
@@ -50,7 +50,7 @@ function hasMonthPassed(date) {
 
 // get all costs
 // output: array of costs
-// GET /api/costs
+// GET /costs/api
 router.get('', async (req, res) => {
     try {
         const costs = await Cost.find();
@@ -62,7 +62,7 @@ router.get('', async (req, res) => {
 });
 
 
-// GET /api/costs/total/:userid
+// GET /costs/api/total/:userid
 // Returns: { userid: <number>, total: <number> }
 router.get('/total/:userid', async (req, res) => {
     try {
