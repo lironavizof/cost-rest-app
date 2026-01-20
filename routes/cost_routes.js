@@ -168,21 +168,13 @@ router.get('/report', async (req, res) => {
 
 
 // services/reportFromCosts.js
+// We check if a monthly report for the user already exists in the Reports collection.
+// If it's missing, we calculate it from the Costs collection, save it to the DB
+// for future requests, and return it. This saves database resources.
 
 const FIXED_CATEGORIES = ['food', 'education', 'health', 'housing'];
 
-/**
- * Build monthly report JSON from the Cost collection.
- * Returns:
- * - always the FIXED_CATEGORIES (even if empty)
- * - plus any dynamic categories found in DB for that month
- *
- * Output format:
- * {
- *   userid, year, month,
- *   costs: [ { food: [...] }, { education: [...] }, ... , { milk: [...] } ]
- * }
- */
+// This function builds the report JSON by aggregating costs from the database
 const getReportFromCostCollection = async (
     userIdNum,
     monthNum,
@@ -190,6 +182,8 @@ const getReportFromCostCollection = async (
     startDate,
     endDate
 ) => {
+
+    // Using MongoDB aggregation to find all costs for a specific user and month
     const aggregationResult = await Cost.aggregate([
         {
             $match: {
@@ -197,7 +191,9 @@ const getReportFromCostCollection = async (
                 date: { $gte: startDate, $lt: endDate }
             }
         },
+        // Sorting the results by category and date for order
         { $sort: { category: 1, date: 1, _id: 1 } },
+        // Grouping items by their category as required in the project document
         {
             $group: {
                 _id: '$category',
@@ -212,34 +208,33 @@ const getReportFromCostCollection = async (
         }
     ]);
 
-    // Build map: category -> items[]
+// Creating a map to easily access items by their category name
     const categoryMap = {};
     aggregationResult.forEach(g => {
         categoryMap[g._id] = g.items;
     });
 
-    // Dynamic categories from DB
+// Getting all categories that actually appeared in the DB
     const dynamicCategories = Object.keys(categoryMap);
 
-    // Merge fixed + dynamic, remove duplicates, keep stable order:
-    // - fixed categories first (in that exact order)
-    // - then other categories (sorted alphabetically)
+// Merging required categories with dynamic ones and removing duplicates
     const merged = [
         ...FIXED_CATEGORIES,
         ...dynamicCategories.filter(c => !FIXED_CATEGORIES.includes(c))
     ];
-
+// Sorting extra categories alphabetically
     const extraSorted = merged
         .slice(FIXED_CATEGORIES.length)
         .sort((a, b) => a.localeCompare(b));
 
     const finalCategories = [...FIXED_CATEGORIES, ...extraSorted];
 
-    // Build costs array with all categories
+    // Mapping the categories into the final JSON structure requested by the lecturer
     const costsArray = finalCategories.map(category => ({
         [category]: categoryMap[category] || []
     }));
 
+    // Returning the final report object
     return {
         userid: userIdNum,
         year: yearNum,
@@ -252,7 +247,7 @@ const getReportFromCostCollection = async (
 
 
 
-
+// Saving the pre-calculated report to MongoDB for the Computed Pattern
 async function saveReport(reportData) {
     const {
         userid,
@@ -267,11 +262,12 @@ async function saveReport(reportData) {
         month,
         costs
     });
-
+// Saving the new report document to the reports collection
     return await report.save();
 }
-
+// Searching for an existing report to avoid calculating it again
 async function findReportByUserAndMonth(userid, year, month) {
+    // Using lean() for faster read-only access to the report data
     return await Report.findOne({
         userid,
         year,

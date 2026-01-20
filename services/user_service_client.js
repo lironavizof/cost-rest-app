@@ -2,7 +2,7 @@
 // Calls an external Users service to check if a user exists.
 
 const DEFAULT_TIMEOUT_MS = 5000;
-
+// Helper function to perform a fetch with a timeout limit
 const fetchWithTimeout = async (url, options = {}, timeoutMs = DEFAULT_TIMEOUT_MS) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -15,22 +15,14 @@ const fetchWithTimeout = async (url, options = {}, timeoutMs = DEFAULT_TIMEOUT_M
     }
 };
 
-/**
- * Checks if a user exists in an external service.
- * Expected endpoint (example):
- *   GET {USER_SERVICE_URL}/api/users/exists/:id
- * Expected JSON response:
- *   { "exists": true }  or { "exists": false }
- *
- * @param {number} userId
- * @returns {Promise<boolean>}
- */
+// Checks if a user exists by calling the external User Service API
 const userExistsRemote = async (userId) => {
+    // Reading the service URL from the environment variables
     const baseUrl = process.env.USER_SERVICE_URL;
     if (!baseUrl) {
         throw new Error('USER_SERVICE_URL is not configured in .env');
     }
-
+// Building the full URL for the exists check endpoint
     const url = `${baseUrl.replace(/\/$/, '')}/exists/${userId}`;
 
     const response = await fetchWithTimeout(url, {

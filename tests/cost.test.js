@@ -1,10 +1,5 @@
 const request = require('supertest');
 
-/**
- * IMPORTANT:
- * We mock DB + external services BEFORE importing app,
- * so app.js won't really connect to Mongo, and routes won't call other microservices.
- */
 
 // 1) Mock DB connect
 jest.mock('../config/db', () => jest.fn(() => Promise.resolve()));
