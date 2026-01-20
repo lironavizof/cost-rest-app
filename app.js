@@ -7,19 +7,19 @@ const costRoutes = require('./routes/cost_routes');
 
 const app = express();
 
-// Middleware
+/* Middleware */
 app.use(express.json());
 app.use(logger);
 
-// Routes
+/* Routes */
 app.use('/costs/api', costRoutes);
 
-// Health check
+/* Health check */
 app.get('/', (req, res) => {
     res.send('Cost REST API is running');
 });
 
-// DB connection
+/* DB connection */
 connectDB();
 
 module.exports = app;
