@@ -2,7 +2,7 @@ const express = require('express');
 const Cost = require('../models/Cost');
 const Report = require('../models/Report');
 
-const {userExistsRemote} = require("../services/userServiceClient");
+const {userExistsRemote} = require("../services/user_service_client");
 
 const router = express.Router();
 
@@ -16,17 +16,20 @@ router.post('/add', async (req, res) => {
     try {
         const cost = new Cost(req.body)
         if(hasMonthPassed(cost.date)){
-            return res.status(400).json({ error: 'month passed' });
+            res.locals.error = { id: 400, message:  'month passed' };
+            return res.status(400).json({ error: res.locals.error.message });
         }
 
         const exists = await userExistsRemote(Number(cost.userid));
         if (!exists) {
-            return res.status(400).json({ error: 'User does not exist' });
+            res.locals.error = { id: 400, message:  'User does not exist' };
+            return res.status(400).json({ error: res.locals.error.message });
         }
         const savedCost = await cost.save();
         res.status(201).json(savedCost);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.locals.error = { id: 400, message:   err.message };
+        res.status(400).json({ error: res.locals.error.message });
         //
     }
 });
@@ -55,24 +58,10 @@ router.get('', async (req, res) => {
         const costs = await Cost.find();
         res.json(costs);
     } catch (err) {
+        res.locals.error = { id: 500, message:   err.message };
         res.status(500).json({ error: err.message });
     }
 });
-
-/**
-//  * GET /api/costs/:userid
-//  * Get costs by user id
-//  */
-// router.get('/:userid', async (req, res) => {
-//     try {
-//         const costs = await Cost.find({ userid: req.params.userid });
-//         res.json(costs);
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
-
-
 
 
 // GET /api/costs/total/:userid
@@ -82,7 +71,8 @@ router.get('/total/:userid', async (req, res) => {
         const userIdNum = Number(req.params.userid);
 
         if (Number.isNaN(userIdNum) || userIdNum <= 0) {
-            return res.status(400).json({ error: 'userid must be a positive number' });
+            res.locals.error = { id: 400, message:   'userid must be a positive number' };
+            return res.status(400).json({ error:  res.locals.error.message });
         }
 
         const agg = await Cost.aggregate([
@@ -97,7 +87,8 @@ router.get('/total/:userid', async (req, res) => {
             total
         });
     } catch (err) {
-        return res.status(500).json({ error: err.message });
+        res.locals.error = { id: 500, message:   err.message };
+        return res.status(500).json({ error: res.locals.error.message });
     }
 });
 
@@ -119,19 +110,22 @@ router.get('/report', async (req, res) => {
 
 
         if (isNaN(userIdNum) || isNaN(yearNum) || isNaN(monthNum)) {
+            res.locals.error = { id: 400, message:   'userid, year and month must be numbers'};
             return res.status(400).json({
-                error: 'userid, year and month must be numbers'
+                error: res.locals.error.message
             });
         }
 
         if (monthNum < 1 || monthNum > 12) {
+            res.locals.error = { id: 400, message:   'month must be between 1 and 12'};
             return res.status(400).json({
-                error: 'month must be between 1 and 12'
+                error: res.locals.error.message
             });
         }
         const exists = await userExistsRemote(Number(userIdNum));
         if (!exists) {
-            return res.status(400).json({ error: 'User does not exist' });
+            res.locals.error = { id: 400, message:   'User does not exist'};
+            return res.status(400).json({ error: res.locals.error.message });
         }
 
         const endOfRequestedMonth = new Date(yearNum, monthNum, 0);
@@ -165,7 +159,8 @@ router.get('/report', async (req, res) => {
 
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.locals.error = { id: 500, message:   err.message};
+        res.status(500).json({ error: res.locals.error.message });
     }
 });
 

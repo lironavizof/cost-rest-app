@@ -1,4 +1,4 @@
-// services/userServiceClient.js
+// services/user_service_client.js
 // Calls an external Users service to check if a user exists.
 
 const DEFAULT_TIMEOUT_MS = 5000;

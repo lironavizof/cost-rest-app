@@ -28,7 +28,7 @@ const costSchema = new mongoose.Schema(
         }
     },
     {
-        collection: 'Cost'
+        collection: 'costs'
     }
 );
 
