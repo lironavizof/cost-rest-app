@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(logger);
 
 /* Routes */
-app.use('/costs/api', costRoutes);
+app.use('/api', costRoutes);
 
 /* Health check */
 app.get('/', (req, res) => {
