@@ -97,7 +97,7 @@ router.get('/total/:userid', async (req, res) => {
  * GET /api/report?userid=111&year=2026&month=1 */
 router.get('/report', async (req, res) => {
     try {
-        const { userid: id, year, month } = req.query;
+        const { id, year, month } = req.query;
 
         if (!id || !year || !month) {
             return res.status(400).json({
