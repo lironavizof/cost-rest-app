@@ -62,7 +62,7 @@ router.get('', async (req, res) => {
 });
 
 
-/* GET /costs/api/total/:userid
+/* GET /api/costs/total/:userid
  * Returns: { userid: <number>, total: <number> } */
 router.get('/total/:userid', async (req, res) => {
     try {
@@ -97,15 +97,15 @@ router.get('/total/:userid', async (req, res) => {
  * GET /api/report?userid=111&year=2026&month=1 */
 router.get('/report', async (req, res) => {
     try {
-        const { userid, year, month } = req.query;
+        const { userid: id, year, month } = req.query;
 
-        if (!userid || !year || !month) {
+        if (!id || !year || !month) {
             return res.status(400).json({
                 error: 'Missing required query parameters: userid, year, month'
             });
         }
 
-        const userIdNum = Number(userid);
+        const userIdNum = Number(id);
         const yearNum = Number(year);
         const monthNum = Number(month);
 
