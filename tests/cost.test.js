@@ -308,7 +308,7 @@ describe('Cost service (unit tests)', () => {
         const res = await request(app).get('/api/report?id=123&year=2000&month=1');
 
         expect(res.statusCode).toBe(200);
-        expect(res.body.finalResponse).toHaveProperty('userid', 123);
+        expect(res.body.finalResponse).toHaveProperty('id', 123);
 
         expect(Report.findOne).toHaveBeenCalledTimes(1);
         expect(Cost.aggregate).not.toHaveBeenCalled();
