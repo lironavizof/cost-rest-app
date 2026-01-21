@@ -101,7 +101,7 @@ router.get('/report', async (req, res) => {
 
         if (!id || !year || !month) {
             return res.status(400).json({
-                error: 'Missing required query parameters: userid, year, month'
+                error: 'Missing required query parameters: id, year, month'
             });
         }
 
@@ -111,7 +111,7 @@ router.get('/report', async (req, res) => {
 
 
         if (isNaN(userIdNum) || isNaN(yearNum) || isNaN(monthNum)) {
-            res.locals.error = { id: 400, message:   'userid, year and month must be numbers'};
+            res.locals.error = { id: 400, message:   'id, year and month must be numbers'};
             return res.status(400).json({
                 error: res.locals.error.message
             });
@@ -141,7 +141,7 @@ router.get('/report', async (req, res) => {
         }
         else{
             //check if exist in REPORT collection
-            // if it exist, return
+            // if it exists, return
             const report = await findReportByUserAndMonth(userIdNum, yearNum, monthNum);
             if (report!= null)
                 finalResponse = report;
