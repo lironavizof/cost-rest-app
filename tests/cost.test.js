@@ -79,14 +79,14 @@ describe('Cost service (unit tests)', () => {
         expect(res.text).toContain('Cost REST API is running');
     });
 
-    /* GET /costs/api  (list all costs) */
-    test('GET /costs/api should return list of costs', async () => {
+    /* GET /api  (list all costs) */
+    test('GET /api should return list of costs', async () => {
         Cost.find.mockResolvedValue([
             { description: 'a', sum: 10 },
             { description: 'b', sum: 20 }
         ]);
 
-        const res = await request(app).get('/costs/api');
+        const res = await request(app).get('/api');
 
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
@@ -94,18 +94,18 @@ describe('Cost service (unit tests)', () => {
         expect(Cost.find).toHaveBeenCalledTimes(1);
     });
 
-    test('GET /costs/api should return 500 on DB error', async () => {
+    test('GET /api should return 500 on DB error', async () => {
         Cost.find.mockRejectedValue(new Error('DB fail'));
 
-        const res = await request(app).get('/costs/api');
+        const res = await request(app).get('/api');
 
         expect(res.statusCode).toBe(500);
         expect(res.body).toHaveProperty('error');
         expect(res.body.error).toContain('DB fail');
     });
 
-    /* POST /costs/api/add */
-    test('POST /costs/api/add should add cost (201) when user exists and date is not in past', async () => {
+    /* POST /api/add */
+    test('POST /api/add should add cost (201) when user exists and date is not in past', async () => {
         userExistsRemote.mockResolvedValue(true);
 
         // Make sure date is in current month so hasMonthPassed(date) === false
@@ -124,7 +124,7 @@ describe('Cost service (unit tests)', () => {
             date: payload.date
         });
 
-        const res = await request(app).post('/costs/api/add').send(payload);
+        const res = await request(app).post('/api/add').send(payload);
 
         expect(res.statusCode).toBe(201);
         expect(userExistsRemote).toHaveBeenCalledWith(123);
@@ -132,7 +132,7 @@ describe('Cost service (unit tests)', () => {
         expect(res.body).toHaveProperty('_id');
     });
 
-    test('POST /costs/api/add should reject when user does not exist (400)', async () => {
+    test('POST /api/add should reject when user does not exist (400)', async () => {
         userExistsRemote.mockResolvedValue(false);
 
         const now = new Date();
@@ -144,14 +144,14 @@ describe('Cost service (unit tests)', () => {
             date: now.toISOString()
         };
 
-        const res = await request(app).post('/costs/api/add').send(payload);
+        const res = await request(app).post('/api/add').send(payload);
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('User does not exist');
         expect(Cost.__saveMock).not.toHaveBeenCalled();
     });
 
-    test('POST /costs/api/add should reject when month passed (400)', async () => {
+    test('POST /api/add should reject when month passed (400)', async () => {
         userExistsRemote.mockResolvedValue(true);
 
         /* date clearly in the past (month passed) */
@@ -165,14 +165,14 @@ describe('Cost service (unit tests)', () => {
             date: past.toISOString()
         };
 
-        const res = await request(app).post('/costs/api/add').send(payload);
+        const res = await request(app).post('/api/add').send(payload);
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('month passed');
         expect(Cost.__saveMock).not.toHaveBeenCalled();
     });
 
-    test('POST /costs/api/add should return 400 on validation/DB error', async () => {
+    test('POST /api/add should return 400 on validation/DB error', async () => {
         userExistsRemote.mockResolvedValue(true);
 
         const now = new Date();
@@ -186,80 +186,80 @@ describe('Cost service (unit tests)', () => {
 
         Cost.__saveMock.mockRejectedValue(new Error('save failed'));
 
-        const res = await request(app).post('/costs/api/add').send(payload);
+        const res = await request(app).post('/api/add').send(payload);
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('save failed');
     });
 
-    /* GET /costs/api/total/:userid */
-    test('GET /costs/api/total/:userid should return total (200)', async () => {
+    /* GET /api/total/:userid */
+    test('GET /api/total/:userid should return total (200)', async () => {
         Cost.aggregate.mockResolvedValue([{ _id: 123, total: 42 }]);
 
-        const res = await request(app).get('/costs/api/total/123');
+        const res = await request(app).get('/api/total/123');
 
         expect(res.statusCode).toBe(200);
         expect(res.body).toEqual({ userid: 123, total: 42 });
         expect(Cost.aggregate).toHaveBeenCalledTimes(1);
     });
 
-    test('GET /costs/api/total/:userid should return 0 when no costs', async () => {
+    test('GET /api/total/:userid should return 0 when no costs', async () => {
         Cost.aggregate.mockResolvedValue([]);
 
-        const res = await request(app).get('/costs/api/total/123');
+        const res = await request(app).get('/api/total/123');
 
         expect(res.statusCode).toBe(200);
         expect(res.body).toEqual({ userid: 123, total: 0 });
     });
 
-    test('GET /costs/api/total/:userid should reject invalid userid (400)', async () => {
-        const res = await request(app).get('/costs/api/total/abc');
+    test('GET /api/total/:userid should reject invalid userid (400)', async () => {
+        const res = await request(app).get('/api/total/abc');
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('userid must be a positive number');
     });
 
-    test('GET /costs/api/total/:userid should return 500 on aggregation error', async () => {
+    test('GET /api/total/:userid should return 500 on aggregation error', async () => {
         Cost.aggregate.mockRejectedValue(new Error('agg fail'));
 
-        const res = await request(app).get('/costs/api/total/123');
+        const res = await request(app).get('/api/total/123');
 
         expect(res.statusCode).toBe(500);
         expect(res.body.error).toContain('agg fail');
     });
 
     /* GET /costs/api/report?userid=&year=&month= */
-    test('GET /costs/api/report should return 400 when missing params', async () => {
-        const res = await request(app).get('/costs/api/report?userid=1&year=2026');
+    test('GET /api/report should return 400 when missing params', async () => {
+        const res = await request(app).get('/api/report?userid=1&year=2026');
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('Missing required query parameters');
     });
 
-    test('GET /costs/api/report should return 400 when params not numbers', async () => {
-        const res = await request(app).get('/costs/api/report?userid=abc&year=2026&month=1');
+    test('GET /api/report should return 400 when params not numbers', async () => {
+        const res = await request(app).get('/api/report?userid=abc&year=2026&month=1');
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('userid, year and month must be numbers');
     });
 
-    test('GET /costs/api/report should return 400 when month out of range', async () => {
-        const res = await request(app).get('/costs/api/report?userid=1&year=2026&month=13');
+    test('GET /api/report should return 400 when month out of range', async () => {
+        const res = await request(app).get('/api/report?userid=1&year=2026&month=13');
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('month must be between 1 and 12');
     });
 
-    test('GET /costs/api/report should return 400 when user does not exist', async () => {
+    test('GET /api/report should return 400 when user does not exist', async () => {
         userExistsRemote.mockResolvedValue(false);
 
-        const res = await request(app).get('/costs/api/report?userid=1&year=2026&month=1');
+        const res = await request(app).get('/api/report?userid=1&year=2026&month=1');
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('User does not exist');
     });
 
-    test('GET /costs/api/report (current/future month) should build report from Cost.aggregate', async () => {
+    test('GET /api/report (current/future month) should build report from Cost.aggregate', async () => {
         userExistsRemote.mockResolvedValue(true);
 
         // Choose current month so now <= endOfRequestedMonth
@@ -273,7 +273,7 @@ describe('Cost service (unit tests)', () => {
             { _id: 'food', items: [{ sum: 10, description: 'b', day: 2 }] }
         ]);
 
-        const res = await request(app).get(`/costs/api/report?userid=123&year=${year}&month=${month}`);
+        const res = await request(app).get(`/api/report?userid=123&year=${year}&month=${month}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('finalResponse');
@@ -293,7 +293,7 @@ describe('Cost service (unit tests)', () => {
         expect(Report.__saveMock).not.toHaveBeenCalled();
     });
 
-    test('GET /costs/api/report (past month) should return cached report if exists', async () => {
+    test('GET /api/report (past month) should return cached report if exists', async () => {
         userExistsRemote.mockResolvedValue(true);
 
         Report.findOne.mockReturnValue({
@@ -305,7 +305,7 @@ describe('Cost service (unit tests)', () => {
             })
         });
 
-        const res = await request(app).get('/costs/api/report?userid=123&year=2000&month=1');
+        const res = await request(app).get('/api/report?userid=123&year=2000&month=1');
 
         expect(res.statusCode).toBe(200);
         expect(res.body.finalResponse).toHaveProperty('userid', 123);
@@ -315,7 +315,7 @@ describe('Cost service (unit tests)', () => {
         expect(Report.__saveMock).not.toHaveBeenCalled();
     });
 
-    test('GET /costs/api/report (past month) should build & save report if not cached', async () => {
+    test('GET /api/report (past month) should build & save report if not cached', async () => {
         userExistsRemote.mockResolvedValue(true);
 
         Report.findOne.mockReturnValue({
@@ -328,7 +328,7 @@ describe('Cost service (unit tests)', () => {
 
         Report.__saveMock.mockResolvedValue({ ok: true });
 
-        const res = await request(app).get('/costs/api/report?userid=123&year=2000&month=1');
+        const res = await request(app).get('/api/report?userid=123&year=2000&month=1');
 
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('finalResponse');
