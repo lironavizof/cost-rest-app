@@ -228,23 +228,23 @@ describe('Cost service (unit tests)', () => {
         expect(res.body.error).toContain('agg fail');
     });
 
-    /* GET /costs/api/report?userid=&year=&month= */
+    /* GET /costs/api/report?id=&year=&month= */
     test('GET /api/report should return 400 when missing params', async () => {
-        const res = await request(app).get('/api/report?userid=1&year=2026');
+        const res = await request(app).get('/api/report?id=1&year=2026');
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('Missing required query parameters');
     });
 
     test('GET /api/report should return 400 when params not numbers', async () => {
-        const res = await request(app).get('/api/report?userid=abc&year=2026&month=1');
+        const res = await request(app).get('/api/report?id=abc&year=2026&month=1');
 
         expect(res.statusCode).toBe(400);
-        expect(res.body.error).toContain('userid, year and month must be numbers');
+        expect(res.body.error).toContain('id, year and month must be numbers');
     });
 
     test('GET /api/report should return 400 when month out of range', async () => {
-        const res = await request(app).get('/api/report?userid=1&year=2026&month=13');
+        const res = await request(app).get('/api/report?id=1&year=2026&month=13');
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('month must be between 1 and 12');
@@ -253,7 +253,7 @@ describe('Cost service (unit tests)', () => {
     test('GET /api/report should return 400 when user does not exist', async () => {
         userExistsRemote.mockResolvedValue(false);
 
-        const res = await request(app).get('/api/report?userid=1&year=2026&month=1');
+        const res = await request(app).get('/api/report?id=1&year=2026&month=1');
 
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toContain('User does not exist');
@@ -273,7 +273,7 @@ describe('Cost service (unit tests)', () => {
             { _id: 'food', items: [{ sum: 10, description: 'b', day: 2 }] }
         ]);
 
-        const res = await request(app).get(`/api/report?userid=123&year=${year}&month=${month}`);
+        const res = await request(app).get(`/api/report?id=123&year=${year}&month=${month}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('finalResponse');
@@ -298,14 +298,14 @@ describe('Cost service (unit tests)', () => {
 
         Report.findOne.mockReturnValue({
             lean: jest.fn().mockResolvedValue({
-                userid: 123,
+                id: 123,
                 year: 2000,
                 month: 1,
                 costs: [{ food: [] }]
             })
         });
 
-        const res = await request(app).get('/api/report?userid=123&year=2000&month=1');
+        const res = await request(app).get('/api/report?id=123&year=2000&month=1');
 
         expect(res.statusCode).toBe(200);
         expect(res.body.finalResponse).toHaveProperty('userid', 123);
@@ -328,7 +328,7 @@ describe('Cost service (unit tests)', () => {
 
         Report.__saveMock.mockResolvedValue({ ok: true });
 
-        const res = await request(app).get('/api/report?userid=123&year=2000&month=1');
+        const res = await request(app).get('/api/report?id=123&year=2000&month=1');
 
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('finalResponse');
